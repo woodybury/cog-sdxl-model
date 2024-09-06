@@ -188,22 +188,28 @@ class Predictor(BasePredictor):
     def load_image(self, path):
         # Copy the image to a temporary location
         shutil.copyfile(path, "/tmp/image.png")
-        
+
         # Open the copied image
         img = Image.open("/tmp/image.png")
-        
-        # Calculate the new dimensions while maintaining aspect ratio
+
+        # Get original dimensions
         width, height = img.size
-        new_width = math.ceil(width / 64) * 64
-        new_height = math.ceil(height / 64) * 64
-        
+
+        # Determine the maximum scaling factor
+        max_dim = 1280
+        scaling_factor = min(max_dim / width, max_dim / height, 1)  # Ensure scaling is <= 1
+
+        # Calculate new dimensions, preserving aspect ratio
+        new_width = math.ceil((width * scaling_factor) / 64) * 64
+        new_height = math.ceil((height * scaling_factor) / 64) * 64
+
         # Resize the image if needed
         if new_width != width or new_height != height:
             img = img.resize((new_width, new_height), Image.LANCZOS)
-        
+
         # Convert the image to RGB mode
         img = img.convert("RGB")
-        
+
         return img
 
     def run_safety_checker(self, image):
